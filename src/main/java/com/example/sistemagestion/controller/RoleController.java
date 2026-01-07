@@ -13,15 +13,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
+@Tag(name = "Roles", description = "Gestión de Roles (Solo ADMIN)")
 public class RoleController {
 
     private final RoleService roleService;
-    
+
     @GetMapping("/index")
     @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Listar Roles Paginados", description = "Devuelve roles con paginación.")
     public ResponseEntity<Page<RoleResponseDto>> getAll(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size

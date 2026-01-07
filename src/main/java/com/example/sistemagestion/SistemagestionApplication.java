@@ -13,10 +13,9 @@ public class SistemagestionApplication {
 		SpringApplication.run(SistemagestionApplication.class, args);
 	}
 
-	// AGREGA ESTE MÉTODO
 	@PostConstruct
 	public void init() {
-		// Esto fuerza a toda la aplicación a usar la hora de Perú (UTC-5)
+		//	Tiempo de Peru
 		TimeZone.setDefault(TimeZone.getTimeZone("America/Lima"));
 	}
 

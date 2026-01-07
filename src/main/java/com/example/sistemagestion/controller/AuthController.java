@@ -16,20 +16,29 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "Autenticación", description = "Endpoints para Login, Registro y Tokens")
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/register")
+    @Operation(summary = "Registrar nuevo usuario", description = "Crea un usuario con rol USER por defecto")
+    @SecurityRequirements() // PÚBLICO
     public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequest request) {
         String mensaje = authService.register(request);
         return ResponseEntity.ok(Collections.singletonMap("message", mensaje));
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Iniciar Sesión", description = "Devuelve Access Token y Refresh Token")
+    @SecurityRequirements() // PÚBLICO
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         AuthResponse response = authService.login(loginRequest, request);
 
@@ -37,6 +46,8 @@ public class AuthController {
     }
 
     @PostMapping("/validate-tokens")
+    @Operation(summary = "Validar/Renovar Tokens", description = "Valida el Refresh Token. Si el Access Token venció, lo renueva.")
+    @SecurityRequirements() // PÚBLICO
     public ResponseEntity<Map<String, Object>> validateTokens(@RequestBody TokenValidationRequest request) {
 
         Map<String, Object> resultado = authService.validateTokens(request);
