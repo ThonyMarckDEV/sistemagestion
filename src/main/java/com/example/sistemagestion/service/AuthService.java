@@ -3,16 +3,25 @@ package com.example.sistemagestion.service;
 import com.example.sistemagestion.dto.auth.AuthResponse;
 import com.example.sistemagestion.dto.auth.LoginRequest;
 import com.example.sistemagestion.dto.auth.RegisterRequest;
+import com.example.sistemagestion.dto.auth.TokenValidationRequest;
 import com.example.sistemagestion.model.Role;
+import com.example.sistemagestion.model.Session;
 import com.example.sistemagestion.model.Usuario;
 import com.example.sistemagestion.repository.RoleRepository;
+import com.example.sistemagestion.repository.SessionRepository;
 import com.example.sistemagestion.repository.UsuarioRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,11 +34,12 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final SessionService sessionService;
 
+    // 2. IMPORTANTE: AGREGAR ESTA LÍNEA PARA INYECTAR EL REPOSITORIO
+    private final SessionRepository sessionRepository;
 
-    // MÉTODO REGISTER (Con validación de email repetido)
+
+    // MÉTODO REGISTER
     public String register(RegisterRequest request) {
-
-        // 1. Validar si el email ya existe antes de intentar guardar
         if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("El correo ya está registrado");
         }
@@ -50,28 +60,82 @@ public class AuthService {
         return "Te has registrado correctamente";
     }
 
-    // MÉTODO LOGIN (Ahora maneja toda la lógica)
+    // MÉTODO LOGIN
     public AuthResponse login(LoginRequest request, HttpServletRequest httpRequest) {
-
-        // 1. Autenticar
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        // 2. Obtener usuario
         var user = usuarioRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 3. Generar tokens
         var accessToken = jwtService.generateAccessToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
-        // 4. GUARDAR SESIÓN (Ahora sí funcionará porque inyectamos sessionService arriba)
         sessionService.createSession(user, accessToken, refreshToken, httpRequest);
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    // MÉTODO VALIDATE TOKENS
+    public Map<String, Object> validateTokens(TokenValidationRequest request) {
+        Map<String, Object> response = new HashMap<>();
+
+        // 1. BUSCAR LA SESIÓN POR REFRESH TOKEN EN LA BD
+        Session session = sessionRepository.findByRefreshToken(request.getRefresh_token())
+                .orElse(null);
+
+        if (session == null) {
+            response.put("valid", false);
+            response.put("message", "Sesión no válida o revocada (No encontrada en BD)");
+            return response;
+        }
+
+        ZoneId zonePeru = ZoneId.of("America/Lima");
+        LocalDateTime ahora = LocalDateTime.now(zonePeru);
+
+        // 3. VERIFICAR SI EL REFRESH TOKEN YA VENCIÓ
+        if (session.getRefreshExpiresAt().isBefore(ahora)) {
+            sessionRepository.delete(session);
+            response.put("valid", false);
+            response.put("message", "Sesión expirada (Refresh token vencido)");
+            return response;
+        }
+
+        // 4. VERIFICAR DISCREPANCIA
+        if (!session.getAccessToken().equals(request.getAccess_token())) {
+            response.put("valid", false);
+            response.put("message", "Discrepancia de tokens (Access token no coincide)");
+            return response;
+        }
+
+        // 5. VALIDAR EL ACCESS TOKEN
+        try {
+            jwtService.extractUsername(request.getAccess_token());
+            response.put("valid", true);
+            response.put("message", "OK, tokens válidos");
+
+        } catch (ExpiredJwtException e) {
+            // RENOVACIÓN AUTOMÁTICA
+            var user = session.getUsuario();
+            String newAccessToken = jwtService.generateAccessToken(user);
+
+            session.setAccessToken(newAccessToken);
+            session.setAccessExpiresAt(ahora.plusMinutes(5));
+            sessionRepository.save(session);
+
+            response.put("valid", true);
+            response.put("message", "Access token renovado");
+            response.put("access_token", newAccessToken);
+
+        } catch (Exception e) {
+            response.put("valid", false);
+            response.put("message", "Error al validar token: " + e.getMessage());
+        }
+
+        return response;
     }
 }

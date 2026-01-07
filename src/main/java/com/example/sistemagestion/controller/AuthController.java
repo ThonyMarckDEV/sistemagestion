@@ -3,6 +3,7 @@ package com.example.sistemagestion.controller;
 import com.example.sistemagestion.dto.auth.AuthResponse;
 import com.example.sistemagestion.dto.auth.LoginRequest;
 import com.example.sistemagestion.dto.auth.RegisterRequest;
+import com.example.sistemagestion.dto.auth.TokenValidationRequest;
 import com.example.sistemagestion.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,22 @@ public class AuthController {
         AuthResponse response = authService.login(loginRequest, request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/validate-tokens")
+    // Permitimos acceso público porque el usuario podría tener el token vencido
+    // y el filtro de seguridad lo rechazaría antes de llegar aquí.
+    public ResponseEntity<Map<String, Object>> validateTokens(@RequestBody TokenValidationRequest request) {
+
+        Map<String, Object> resultado = authService.validateTokens(request);
+
+        // Si valid es false, devolvemos 401, si es true devolvemos 200
+        boolean isValid = (boolean) resultado.get("valid");
+
+        if (isValid) {
+            return ResponseEntity.ok(resultado);
+        } else {
+            return ResponseEntity.status(401).body(resultado);
+        }
     }
 }
