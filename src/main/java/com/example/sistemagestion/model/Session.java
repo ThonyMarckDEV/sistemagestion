@@ -1,8 +1,7 @@
 package com.example.sistemagestion.model;
 
-import com.example.sistemagestion.model.Usuario;
 import jakarta.persistence.*;
-import lombok.Data; // Si usas Lombok, sino genera Getters/Setters manuales
+import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
@@ -17,7 +16,6 @@ public class Session {
     private Long id;
 
     // Relación con tu entidad Usuario
-    // Asumo que tu entidad de usuarios se llama 'Usuario'
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_Usuario", nullable = false)
     private Usuario usuario;

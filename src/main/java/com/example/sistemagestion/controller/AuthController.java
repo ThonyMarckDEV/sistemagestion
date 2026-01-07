@@ -18,10 +18,9 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor // Esto crea el constructor para todos los campos 'final'
+@RequiredArgsConstructor
 public class AuthController {
 
-    // 1. DECLARAR TODAS LAS DEPENDENCIAS AQUÍ
     private final AuthService authService;
 
     @PostMapping("/register")
@@ -38,8 +37,6 @@ public class AuthController {
     }
 
     @PostMapping("/validate-tokens")
-    // Permitimos acceso público porque el usuario podría tener el token vencido
-    // y el filtro de seguridad lo rechazaría antes de llegar aquí.
     public ResponseEntity<Map<String, Object>> validateTokens(@RequestBody TokenValidationRequest request) {
 
         Map<String, Object> resultado = authService.validateTokens(request);

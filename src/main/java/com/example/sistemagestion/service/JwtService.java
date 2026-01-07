@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value; // <--- 1. IMPORTAR ESTO
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -18,48 +19,38 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // En producción esto va en application.properties
-    private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    // INYECTAR LA CLAVE DESDE PROPERTIES
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     // Tiempos de expiración (en milisegundos)
-    // 5 Minutos = 1000 * 60 * 5
-    private static final long ACCESS_TOKEN_EXPIRATION = 300000;
+    private static final long ACCESS_TOKEN_EXPIRATION = 300000;      // 5 min
+    private static final long REFRESH_TOKEN_EXPIRATION = 86400000;   // 24 horas
 
-    // 24 Horas = 1000 * 60 * 60 * 24
-    private static final long REFRESH_TOKEN_EXPIRATION = 86400000;
-
-    // 1. Obtener username
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // 2. Obtener claim genérico
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    // 3. Generar Access Token (5 min)
     public String generateAccessToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails, ACCESS_TOKEN_EXPIRATION);
     }
 
-    // Sobrecarga del método para incluir claims personalizados automáticamente
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
-
-        // Obtenemos el rol desde userDetails.getAuthorities()
         String role = userDetails.getAuthorities().stream()
                 .findFirst()
                 .map(GrantedAuthority::getAuthority)
-                .orElse("USER"); // Valor por defecto si no tiene rol
+                .orElse("USER");
 
-        // Lo agregamos al mapa
         extraClaims.put("role", role);
 
         return buildToken(extraClaims, userDetails, expiration);
     }
 
-    // 4. Generar Refresh Token (24 horas)
     public String generateRefreshToken(UserDetails userDetails) {
         return buildToken(new HashMap<>(), userDetails, REFRESH_TOKEN_EXPIRATION);
     }
@@ -79,7 +70,6 @@ public class JwtService {
                 .compact();
     }
 
-    // 5. Validar token
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
@@ -103,7 +93,8 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        // USAR LA VARIABLE INYECTADA (secretKey)
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

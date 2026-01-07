@@ -39,17 +39,13 @@ public class Usuario implements UserDetails {
     @JoinColumn(name = "id_rol")
     private Role role;
 
-    // --- NUEVOS CAMPOS DE CONTROL ---
-
-    @Builder.Default // Importante: Asegura que al registrarse sean TRUE por defecto
-    @Column(columnDefinition = "boolean default true") // Crea la columna en MySQL con valor true
-    private boolean enabled = true; // Si es false, el usuario no puede entrar (inhabilitado)
+    @Builder.Default
+    @Column(columnDefinition = "boolean default true")
+    private boolean enabled = true;
 
     @Builder.Default
     @Column(columnDefinition = "boolean default true")
-    private boolean accountNonLocked = true; // Si es false, el usuario está BANEADO
-
-    // --------------------------------
+    private boolean accountNonLocked = true;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

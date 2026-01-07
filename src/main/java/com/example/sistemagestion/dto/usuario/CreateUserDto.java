@@ -8,5 +8,5 @@ public class CreateUserDto {
     private String apellido;
     private String email;
     private String password;
-    private String role; // Esperamos "ADMIN" o "USER"
+    private String role; // "ADMIN" o "USER"
 }

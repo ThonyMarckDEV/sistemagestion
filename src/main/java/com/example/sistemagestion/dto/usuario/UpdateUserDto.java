@@ -7,5 +7,5 @@ public class UpdateUserDto {
     private String username;
     private String apellido;
     private String email;
-    private String role; // Permite cambiar el rol
+    private String role; // Cambiar el rol
 }
