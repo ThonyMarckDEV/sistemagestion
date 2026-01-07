@@ -22,21 +22,21 @@ public class UsuarioService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 1. LISTAR TODOS (Este SÍ debe devolver la lista de objetos)
+    // LISTAR TODOS
     public List<UserResponseDto> getAllUsuarios() {
         return usuarioRepository.findAll().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
-    // 2. OBTENER UNO (Este SÍ debe devolver el objeto)
+    // OBTENER UNO
     public UserResponseDto getUsuarioById(Integer id) {
         Usuario user = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         return mapToDto(user);
     }
 
-    // 3. CREAR USUARIO -> Ahora devuelve String
+    // CREAR USUARIO
     public String createUsuario(CreateUserDto request) {
         if (usuarioRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("El email ya está registrado");
@@ -61,7 +61,7 @@ public class UsuarioService {
         return "Usuario creado correctamente";
     }
 
-    // 4. ACTUALIZAR USUARIO -> Ahora devuelve String
+    // ACTUALIZAR USUARIO
     public String updateUsuario(Integer id, UpdateUserDto request) {
         Usuario user = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -82,7 +82,7 @@ public class UsuarioService {
         return "Usuario actualizado correctamente";
     }
 
-    // 5. BORRADO LÓGICO -> Ahora devuelve String
+    // BORRADO LÓGICO
     public String deleteUsuarioLogico(Integer id) {
         Usuario user = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -94,7 +94,7 @@ public class UsuarioService {
         return "Usuario eliminado correctamente";
     }
 
-    // Método auxiliar (Se mantiene igual para los GETs)
+    // Método auxiliar
     private UserResponseDto mapToDto(Usuario user) {
         return UserResponseDto.builder()
                 .id(user.getId())

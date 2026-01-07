@@ -93,7 +93,6 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        // USAR LA VARIABLE INYECTADA (secretKey)
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }

@@ -33,8 +33,6 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final SessionService sessionService;
-
-    // 2. IMPORTANTE: AGREGAR ESTA LÍNEA PARA INYECTAR EL REPOSITORIO
     private final SessionRepository sessionRepository;
 
 
@@ -84,7 +82,7 @@ public class AuthService {
     public Map<String, Object> validateTokens(TokenValidationRequest request) {
         Map<String, Object> response = new HashMap<>();
 
-        // 1. BUSCAR LA SESIÓN POR REFRESH TOKEN EN LA BD
+        // BUSCAR LA SESIÓN POR REFRESH TOKEN EN LA BD
         Session session = sessionRepository.findByRefreshToken(request.getRefresh_token())
                 .orElse(null);
 
@@ -97,7 +95,7 @@ public class AuthService {
         ZoneId zonePeru = ZoneId.of("America/Lima");
         LocalDateTime ahora = LocalDateTime.now(zonePeru);
 
-        // 3. VERIFICAR SI EL REFRESH TOKEN YA VENCIÓ
+        // VERIFICAR SI EL REFRESH TOKEN YA VENCIÓ
         if (session.getRefreshExpiresAt().isBefore(ahora)) {
             sessionRepository.delete(session);
             response.put("valid", false);
@@ -105,14 +103,14 @@ public class AuthService {
             return response;
         }
 
-        // 4. VERIFICAR DISCREPANCIA
+        //  VERIFICAR DISCREPANCIA
         if (!session.getAccessToken().equals(request.getAccess_token())) {
             response.put("valid", false);
             response.put("message", "Discrepancia de tokens (Access token no coincide)");
             return response;
         }
 
-        // 5. VALIDAR EL ACCESS TOKEN
+        //  VALIDAR EL ACCESS TOKEN
         try {
             jwtService.extractUsername(request.getAccess_token());
             response.put("valid", true);

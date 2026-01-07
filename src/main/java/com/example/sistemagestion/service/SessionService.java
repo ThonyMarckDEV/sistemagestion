@@ -22,11 +22,11 @@ public class SessionService {
         session.setAccessToken(accessToken);
         session.setRefreshToken(refreshToken);
 
-        // 1. Obtener la hora actual en Perú
+        //  Obtener la hora actual en Perú
         ZoneId zonePeru = ZoneId.of("America/Lima");
         LocalDateTime ahoraEnPeru = LocalDateTime.now(zonePeru);
 
-        // 2. CONFIGURAR EXPIRACIÓN SEGÚN TUS REGLAS:
+        // CONFIGURAR EXPIRACIÓN
         // Access Token: Vence en 5 minutos
         session.setAccessExpiresAt(ahoraEnPeru.plusMinutes(5));
 

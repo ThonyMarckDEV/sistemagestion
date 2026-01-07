@@ -66,7 +66,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // No lo usaremos, siempre true
+        return true; // No se usa, siempre true
     }
 
     @Override
@@ -76,7 +76,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // No lo usaremos, siempre true
+        return true; // No se usa, siempre true
     }
 
     @Override

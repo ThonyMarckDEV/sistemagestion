@@ -15,7 +15,7 @@ public class Session {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relación con tu entidad Usuario
+    // Relación con entidad Usuario
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_Usuario", nullable = false)
     private Usuario usuario;

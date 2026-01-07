@@ -12,6 +12,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     // Para validar si ya existe al crear uno nuevo
     boolean existsByEmail(String email);
 
-    // Opcional: Si quieres buscar solo los activos
+    // Buscar solo los activos
     List<Usuario> findByEnabledTrue();
 }

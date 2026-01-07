@@ -19,7 +19,7 @@ public class RoleService {
                 .map(this::mapToDto);
     }
 
-    // Método auxiliar (Igual que antes)
+    // Método auxiliar
     private RoleResponseDto mapToDto(Role role) {
         return RoleResponseDto.builder()
                 .id(role.getId())
